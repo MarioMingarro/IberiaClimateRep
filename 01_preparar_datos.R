@@ -11,7 +11,7 @@
 #   results/01_climate/future_climate_ensemble_SD.tif
 #   results/01_climate/protected_areas_filtered.shp
 
-source("config.R")
+source("configuracion.R")
 
 library(terra)
 library(sf)
