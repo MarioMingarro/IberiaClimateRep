@@ -11,7 +11,7 @@
 #   results/01_climate/future_climate_ensemble_SD.tif
 #   results/01_climate/protected_areas_filtered.shp
 
-source("configuracion.R")
+source("0_configuracion.R")
 
 library(terra)
 library(sf)
@@ -20,7 +20,7 @@ library(ClimaRep)
 
 # ── 1.1 Clima presente ────────────────────────────────────────────────────────
 
-message("== 1.1  Cargando variables climáticas presentes")
+message("1.1  Cargando variables climáticas presentes")
 
 present_raw <- terra::rast(list.files(DIR_PRESENT_CLIMATE, "\\.tif$", full.names = TRUE))
 
@@ -36,6 +36,7 @@ present_raw <- terra::mask(terra::crop(present_raw, study_area), study_area)
 message("Ejecutando vif_filter (umbral = ", VIF_THRESHOLD, ")")
 vif_result    <- ClimaRep::vif_filter(present_raw, th = VIF_THRESHOLD)
 present_clim  <- vif_result$filtered_raster
+names(present_clim) <- sub("_[0-9]{4}-.*", "", names(present_clim))
 selected_vars <- names(present_clim)
 
 message("Variables retenidas: ", paste(selected_vars, collapse = ", "))
@@ -50,7 +51,7 @@ terra::writeRaster(
 
 # ── 1.2 Clima futuro: ensamble multi-modelo ───────────────────────────────────
 
-message("== 1.2  Construyendo ensamble de clima futuro")
+message("1.2  Construyendo ensamble de clima futuro")
 
 dir_stats <- file.path(DIR_OUT_CLIMATE, "ensemble_by_variable")
 dir.create(dir_stats, recursive = TRUE, showWarnings = FALSE)
@@ -67,7 +68,7 @@ for (model in FUTURE_MODELS) {
   r <- terra::subset(r, selected_vars)
   r <- terra::mask(terra::crop(r, study_area), study_area)
   model_rasters[[model]] <- r
-  message("   Modelo cargado: ", model)
+  message("Modelo cargado: ", model)
 }
 
 for (var in selected_vars) {
@@ -107,11 +108,11 @@ protected_areas <- read_sf(PATH_PROTECTED_AREAS) |>
   st_transform(crs(present_clim)) |>
   mutate(
     Area_m2     = as.numeric(st_area(geometry)),
-    Perimeter_m = as.numeric(st_perimeter(geometry)),
-    IPQ         = (4 * pi * Area_m2) / (Perimeter_m^2)
+    Prmtr_m = as.numeric(st_perimeter(geometry)),
+    IPQ         = (4 * pi * Area_m2) / (Prmtr_m^2)
   ) |>
   filter(Area_m2 > MIN_AREA_M2, IPQ > MIN_IPQ) |>
-  select(all_of(c(COL_AP_ID, COL_AP_NAME)), Area_m2, Perimeter_m, IPQ)
+  select(all_of(c(COL_AP_ID, COL_AP_NAME)), Area_m2, Prmtr_m, IPQ)
 
 st_write(
   protected_areas,
@@ -120,4 +121,4 @@ st_write(
 )
 
 message("APs retenidas: ", nrow(protected_areas))
-message(" Paso 1 completado.")
+message("Paso 1 completado.")

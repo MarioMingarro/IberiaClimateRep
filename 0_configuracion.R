@@ -26,7 +26,7 @@ FUTURE_PERIOD  <- "2070"   # Etiqueta temporal del escenario futuro
 
 # ── Parámetros del análisis ───────────────────────────────────────────────────
 
-VIF_THRESHOLD   <- 5     # Umbral VIF para eliminar variables colineales
+VIF_THRESHOLD   <- 7     # Umbral VIF para eliminar variables colineales
 REP_THRESHOLD   <- 0.95  # Percentil de Mahalanobis para definir análogos en APs (P95)
 EUCRS_THRESHOLD <- 1.00  # Percentil de Mahalanobis para definir análogos en la cuadrícula EUCRS (P100: rango completo)
 
@@ -37,8 +37,8 @@ MIN_IPQ     <- 0.01   # Cociente isoperimétrico mínimo
 
 # ── Columnas identificadoras en el shapefile de APs ──────────────────────────
 
-COL_AP_ID   <- "SITECODE"   # Identificador único
-COL_AP_NAME <- "SITENAME"   # Nombre legible
+COL_AP_ID   <- "FinCode"   # Identificador único
+COL_AP_NAME <- "IntName"   # Nombre legible
 
 # ── Variables bioclimáticas a excluir antes del VIF ──────────────────────────
 
