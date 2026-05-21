@@ -18,7 +18,7 @@ library(sf)
 library(dplyr)
 library(ClimaRep)
 
-# ── 1.1 Clima presente ────────────────────────────────────────────────────────
+# 1.1 Clima presente----
 
 message("1.1  Cargando variables climáticas presentes")
 
@@ -49,7 +49,7 @@ terra::writeRaster(
   overwrite = TRUE
 )
 
-# ── 1.2 Clima futuro: ensamble multi-modelo ───────────────────────────────────
+# 1.2 Clima futuro: ensamble multi-modelo----
 
 message("1.2  Construyendo ensamble de clima futuro")
 
@@ -66,7 +66,7 @@ for (model in FUTURE_MODELS) {
   r <- terra::rast(list.files(model_dir, "\\.tif$", full.names = TRUE))
   names(r) <- sub("_[0-9]{4}-.*", "", names(r))
   r <- terra::subset(r, selected_vars)
-  r <- terra::mask(terra::crop(r, study_area), study_area)
+  r <- terra::mask(terra::crop(r, study_area_wgs84), study_area_wgs84)
   model_rasters[[model]] <- r
   message("Modelo cargado: ", model)
 }
@@ -83,6 +83,7 @@ for (var in selected_vars) {
 mean_files  <- sort(list.files(dir_stats, "_MEAN\\.tif$", full.names = TRUE))
 future_clim <- terra::rast(mean_files)
 names(future_clim) <- gsub("_MEAN\\.tif$", "", basename(mean_files))
+terra::project(future_clim, sf::crs)
 terra::writeRaster(
   future_clim,
   file.path(DIR_OUT_CLIMATE, "future_climate_ensemble_MEAN.tif"),
@@ -99,26 +100,4 @@ terra::writeRaster(
 )
 
 message("Ensamble futuro guardado.")
-
-# ── 1.3 Polígonos de APs ──────────────────────────────────────────────────────
-
-message("1.3  Filtrando áreas protegidas")
-
-protected_areas <- read_sf(PATH_PROTECTED_AREAS) |>
-  st_transform(crs(present_clim)) |>
-  mutate(
-    Area_m2     = as.numeric(st_area(geometry)),
-    Prmtr_m = as.numeric(st_perimeter(geometry)),
-    IPQ         = (4 * pi * Area_m2) / (Prmtr_m^2)
-  ) |>
-  filter(Area_m2 > MIN_AREA_M2, IPQ > MIN_IPQ) |>
-  select(all_of(c(COL_AP_ID, COL_AP_NAME)), Area_m2, Prmtr_m, IPQ)
-
-st_write(
-  protected_areas,
-  file.path(DIR_OUT_CLIMATE, "protected_areas_filtered.shp"),
-  append = FALSE
-)
-
-message("APs retenidas: ", nrow(protected_areas))
 message("Paso 1 completado.")

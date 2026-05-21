@@ -1,9 +1,9 @@
 # =============================================================================
 # ClimaRep - Paso 2: Ejecución de ClimaRep en paralelo
 # =============================================================================
-# 2.1  mh_rep()    sobre cada AP         → rásteres de representatividad (→ N2000CRS)
-# 2.2  mh_rep()    sobre cuadrícula EUCRS → rásteres de referencia       (→ EUCRS)
-# 2.3  mh_rep_ch() sobre cada AP         → rásteres de cambio (Stable/Lost/Novel)
+# 3.1  mh_rep()    sobre cada AP         → rásteres de representatividad (→ N2000CRS)
+# 3.2  mh_rep()    sobre cuadrícula EUCRS → rásteres de referencia       (→ EUCRS)
+# 3.3  mh_rep_ch() sobre cada AP         → rásteres de cambio (Stable/Lost/Novel)
 #
 # Los tres bloques son independientes y pueden ejecutarse en cualquier orden.
 # El procesamiento paralelo se gestiona con doParallel en cada bloque.
@@ -24,14 +24,37 @@ future_clim_path  <- file.path(DIR_OUT_CLIMATE, "future_climate_ensemble_MEAN.ti
 # Cargar datos espaciales
 present_clim    <- terra::rast(present_clim_path)
 study_area      <- read_sf(PATH_STUDY_AREA)       |> st_transform(crs(present_clim))
-protected_areas <- read_sf(file.path(DIR_OUT_CLIMATE, "protected_areas_filtered.shp"))
+protected_areas <- read_sf(PATH_PROTECTED_AREAS)
 
-# ── 2.1 mh_rep() para todas las APs → N2000CRS ───────────────────────────────
+# Filtrado polígonos de APs----
+
+message("Filtrando áreas protegidas")
+dir.create(DIR_OUT_APS, recursive = TRUE, showWarnings = FALSE)
+
+protected_areas <- read_sf(PATH_PROTECTED_AREAS) |>
+  st_transform(crs(present_clim)) |>
+  mutate(
+    Area_m2     = as.numeric(st_area(geometry)),
+    Prmtr_m = as.numeric(st_perimeter(geometry)),
+    IPQ         = (4 * pi * Area_m2) / (Prmtr_m^2)
+  ) |>
+  filter(Area_m2 > MIN_AREA_M2, IPQ > MIN_IPQ) |>
+  select(all_of(c(COL_AP_ID, COL_AP_NAME)), Area_m2, Prmtr_m, IPQ)
+
+st_write(
+  protected_areas,
+  file.path(DIR_OUT_APS, "protected_areas_filtered.shp"),
+  append = FALSE
+)
+
+message("APs retenidas: ", nrow(protected_areas))
+
+# 3.1 mh_rep() para todas las APs → N2000CRS----
 #
 # Para cada AP genera un ráster binario: 1 = celda análoga, 0 = no análoga.
 # La agregación de todos estos rásteres (Paso 3) produce N2000CRS.
 
-message("2.1  mh_rep() para cada AP (representatividad presente)")
+message("3.1  mh_rep() para cada AP (representatividad presente)")
 dir.create(DIR_OUT_APS, recursive = TRUE, showWarnings = FALSE)
 
 cl <- makeCluster(NUM_CORES)
@@ -64,7 +87,7 @@ foreach(
 stopCluster(cl)
 message("mh_rep() para APs completado.")
 
-# ── 2.2 mh_rep() para la cuadrícula de referencia → EUCRS ────────────────────
+# 2.2 mh_rep() para la cuadrícula de referencia → EUCRS----
 #
 # EUCRS(c) = nº de celdas de la cuadrícula cuyo espacio climático incluye c.
 # Equivale a la redundancia climática de fondo (no debida a la red de APs).
@@ -120,7 +143,7 @@ foreach(
 stopCluster(cl)
 message("mh_rep() para cuadrícula completado.")
 
-# ── 2.3 mh_rep_ch() para todas las APs → Stable / Lost / Novel ───────────────
+# 2.3 mh_rep_ch() para todas las APs → Stable / Lost / Novel----
 #
 # Para cada AP compara el espacio climático presente con el futuro e identifica:
 #   Stable    (1): análogo en presente Y en futuro  → persistencia climática
@@ -151,17 +174,16 @@ foreach(
   ap   <- protected_areas[i, ]
   ClimaRep::mh_rep_ch(
     polygon                   = ap,
-    col_name                  = COL_AP_ID,
+    col_name                  = COL_AP_NAME,
     present_climate_variables = pres,
     future_climate_variables  = fut,
     study_area                = study_area,
     th                        = REP_THRESHOLD,
-    model                     = "ensemble",
+    model                     = COL_AP_ID,
     year                      = FUTURE_PERIOD,
     dir_output                = DIR_OUT_CHANGE,
-    save_raw                  = FALSE
+    save_raw                  = TRUE
   )
-  paste("OK:", ap[[COL_AP_NAME]])
 }
 stopCluster(cl)
 message("mh_rep_ch() completado.")
