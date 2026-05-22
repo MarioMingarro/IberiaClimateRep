@@ -31,12 +31,16 @@ present_raw  <- terra::subset(
 )
 
 study_area  <- read_sf(PATH_STUDY_AREA) |> st_transform(crs(present_raw))
+study_area_src   <- vect(PATH_STUDY_AREA)
+study_area_wgs84 <- project(study_area_src, "EPSG:4326")
 present_raw <- terra::mask(terra::crop(present_raw, study_area), study_area)
 
 message("Ejecutando vif_filter (umbral = ", VIF_THRESHOLD, ")")
 vif_result    <- ClimaRep::vif_filter(present_raw, th = VIF_THRESHOLD)
 present_clim  <- vif_result$filtered_raster
-names(present_clim) <- sub("_[0-9]{4}-.*", "", names(present_clim))
+print(vif_result$summary)
+names(present_clim) <- gsub(".*_(bio[0-9]+)_.*", "\\1", names(present_clim))
+names(present_clim) <-  gsub("bio0", "bio", names(present_clim))
 selected_vars <- names(present_clim)
 
 message("Variables retenidas: ", paste(selected_vars, collapse = ", "))
@@ -64,7 +68,8 @@ for (model in FUTURE_MODELS) {
     next
   }
   r <- terra::rast(list.files(model_dir, "\\.tif$", full.names = TRUE))
-  names(r) <- sub("_[0-9]{4}-.*", "", names(r))
+  names(r) <- gsub(".*_(bio[0-9]+)_.*", "\\1", names(r))
+  names(r) <- gsub("bio0", "bio", names(r))
   r <- terra::subset(r, selected_vars)
   r <- terra::mask(terra::crop(r, study_area_wgs84), study_area_wgs84)
   model_rasters[[model]] <- r
@@ -76,6 +81,8 @@ for (var in selected_vars) {
   stk    <- terra::sds(layers)
   mean_r <- terra::app(stk, mean); names(mean_r) <- var
   sd_r   <- terra::app(stk, sd);   names(sd_r)   <- var
+  mean_r <- project(mean_r, CHELSA_TARGET_CRS, method = "bilinear")
+  sd_r <- project(sd_r, CHELSA_TARGET_CRS, method = "bilinear")
   terra::writeRaster(mean_r, file.path(dir_stats, paste0(var, "_MEAN.tif")), overwrite = TRUE)
   terra::writeRaster(sd_r,   file.path(dir_stats, paste0(var, "_SD.tif")),   overwrite = TRUE)
 }
@@ -83,7 +90,7 @@ for (var in selected_vars) {
 mean_files  <- sort(list.files(dir_stats, "_MEAN\\.tif$", full.names = TRUE))
 future_clim <- terra::rast(mean_files)
 names(future_clim) <- gsub("_MEAN\\.tif$", "", basename(mean_files))
-terra::project(future_clim, sf::crs)
+future_clim <- project(future_clim, CHELSA_TARGET_CRS, method = "bilinear")
 terra::writeRaster(
   future_clim,
   file.path(DIR_OUT_CLIMATE, "future_climate_ensemble_MEAN.tif"),
@@ -93,6 +100,7 @@ terra::writeRaster(
 sd_files       <- sort(list.files(dir_stats, "_SD\\.tif$", full.names = TRUE))
 future_clim_sd <- terra::rast(sd_files)
 names(future_clim_sd) <- gsub("_SD\\.tif$", "", basename(sd_files))
+future_clim_sd <- project(future_clim_sd, CHELSA_TARGET_CRS, method = "bilinear")
 terra::writeRaster(
   future_clim_sd,
   file.path(DIR_OUT_CLIMATE, "future_climate_ensemble_SD.tif"),

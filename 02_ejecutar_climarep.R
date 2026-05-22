@@ -32,6 +32,7 @@ message("Filtrando áreas protegidas")
 dir.create(DIR_OUT_APS, recursive = TRUE, showWarnings = FALSE)
 
 protected_areas <- read_sf(PATH_PROTECTED_AREAS) |>
+  st_make_valid() |>
   st_transform(crs(present_clim)) |>
   mutate(
     Area_m2     = as.numeric(st_area(geometry)),
@@ -48,12 +49,12 @@ st_write(
 )
 
 message("APs retenidas: ", nrow(protected_areas))
-
+protected_areas <- st_read(file.path(DIR_OUT_APS, "protected_areas_filtered.shp"))
 # 3.1 mh_rep() para todas las APs → N2000CRS----
 #
 # Para cada AP genera un ráster binario: 1 = celda análoga, 0 = no análoga.
 # La agregación de todos estos rásteres (Paso 3) produce N2000CRS.
-
+tictoc::tic()
 message("3.1  mh_rep() para cada AP (representatividad presente)")
 dir.create(DIR_OUT_APS, recursive = TRUE, showWarnings = FALSE)
 
@@ -86,7 +87,7 @@ foreach(
 }
 stopCluster(cl)
 message("mh_rep() para APs completado.")
-
+tictoc::toc()
 # 2.2 mh_rep() para la cuadrícula de referencia → EUCRS----
 #
 # EUCRS(c) = nº de celdas de la cuadrícula cuyo espacio climático incluye c.
@@ -95,6 +96,7 @@ message("mh_rep() para APs completado.")
 # píxeles internos y el percentil sea representativo.
 
 message("2.2  Creando cuadrícula y ejecutando mh_rep() para EUCRS")
+tictoc::tic()
 dir.create(DIR_OUT_GRID, recursive = TRUE, showWarnings = FALSE)
 
 r_ref   <- terra::rast(present_clim_path)[[1]]
@@ -103,8 +105,10 @@ grid_vect <- terra::as.polygons(r_agg, values = FALSE, dissolve = FALSE, na.rm =
 grid_vect$ID <- seq_len(nrow(grid_vect))
 
 # Recortar al área de estudio para eliminar celdas marinas/fuera del dominio
+study_area_clean <- sf::st_make_valid(study_area)
 grid_sf <- sf::st_as_sf(grid_vect) |>
-  sf::st_intersection(study_area) |>
+  sf::st_make_valid() |>
+  sf::st_intersection(study_area_clean) |>
   select(ID)
 
 terra::writeVector(
@@ -142,7 +146,7 @@ foreach(
 }
 stopCluster(cl)
 message("mh_rep() para cuadrícula completado.")
-
+tictoc::toc()
 # 2.3 mh_rep_ch() para todas las APs → Stable / Lost / Novel----
 #
 # Para cada AP compara el espacio climático presente con el futuro e identifica:
