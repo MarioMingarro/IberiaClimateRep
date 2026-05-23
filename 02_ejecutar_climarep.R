@@ -78,14 +78,14 @@ foreach(
   ap   <- protected_areas[i, ]
   ClimaRep::mh_rep(
     polygon           = ap,
-    col_name          = COL_AP_NAME,
+    col_name          = COL_AP_ID,
     climate_variables = clim,
     study_area        = study_area,
     th                = REP_THRESHOLD,
     dir_output        = DIR_OUT_APS,
     save_raw          = FALSE
   )
-  paste("OK:", ap[[COL_AP_NAME]])
+  paste("OK:", ap[[COL_AP_ID]])
 }
 stopCluster(cl)
 message("mh_rep() para APs completado.")
@@ -112,6 +112,9 @@ study_area_clean <- sf::st_make_valid(study_area)
 grid_sf <- sf::st_as_sf(grid_vect) |>
   sf::st_make_valid() |>
   sf::st_intersection(study_area_clean) |>
+  mutate(
+    Area_m2     = as.numeric(st_area(geometry))) |>
+  filter(Area_m2 > MIN_AREA_M2) |>
   select(ID)
 
 terra::writeVector(

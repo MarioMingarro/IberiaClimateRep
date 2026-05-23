@@ -7,7 +7,7 @@
 # Rutas de entrada----
 DIR_PRESENT_CLIMATE <- "C:/A_TRABAJO/DATA/CHELSA/BIOCLIM_1981_2010/"
 DIR_FUTURE_CLIMATE   <- "C:/A_TRABAJO/DATA/CHELSA/FUTURE/2041_2070/SSP585"     #  Ruta a las sub-carpetas con variables bioclimáticas futuras. Una por por modelo: GFDL/, IPSL/, etc. (*.tif)
-PATH_STUDY_AREA      <- "C:/A_TRABAJO/IberiaClimateRep_RES/DATA/ES_land_LAEA89.shp"      # Ruta al .shp que contiene el poligono delimitante el area de estudio.
+PATH_STUDY_AREA      <- "C:/A_TRABAJO/IberiaClimateRep_RES/DATA/ES_land_LAEA89_10km.shp"      # Ruta al .shp que contiene el poligono delimitante el area de estudio.
 PATH_PROTECTED_AREAS <- "C:/A_TRABAJO/IberiaClimateRep_RES/DATA/N2000_ES_LAEA89.shp" # Ruta al .shp que contiene el poligono de las Áreas Protegidas.
 
 DIR_CHELSA_MONTHLY <- "C:/A_TRABAJO/DATA/CHELSA/MONTHLY_1980_2022"
