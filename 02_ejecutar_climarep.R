@@ -23,7 +23,7 @@ future_clim_path  <- file.path(DIR_OUT_CLIMATE, "future_climate_ensemble_MEAN.ti
 
 # Cargar datos espaciales
 present_clim    <- terra::rast(present_clim_path)
-study_area      <- read_sf(PATH_STUDY_AREA)       |> st_transform(crs(present_clim))
+study_area      <- read_sf(PATH_STUDY_AREA) |> st_make_valid() |>st_transform(crs(present_clim))
 protected_areas <- read_sf(PATH_PROTECTED_AREAS)
 
 # Filtrado polígonos de APs----
@@ -34,6 +34,7 @@ dir.create(DIR_OUT_APS, recursive = TRUE, showWarnings = FALSE)
 protected_areas <- read_sf(PATH_PROTECTED_AREAS) |>
   st_make_valid() |>
   st_transform(crs(present_clim)) |>
+  st_intersection(study_area) |>
   mutate(
     Area_m2     = as.numeric(st_area(geometry)),
     Prmtr_m = as.numeric(st_perimeter(geometry)),
@@ -89,6 +90,7 @@ foreach(
 stopCluster(cl)
 message("mh_rep() para APs completado.")
 tictoc::toc()
+
 # 2.2 mh_rep() para la cuadrícula de referencia → EUCRS----
 #
 # EUCRS(c) = nº de celdas de la cuadrícula cuyo espacio climático incluye c.
