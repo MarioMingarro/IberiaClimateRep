@@ -5,27 +5,27 @@
 # En todos los demás scripts este archivo se carga con source("config.R").
 
 # Rutas de entrada----
-DIR_PRESENT_CLIMATE <- "C:/A_TRABAJO/DATA/CHELSA/BIOCLIM_1981_2010/"
+DIR_PRESENT_CLIMATE <- "C:/A_TRABAJO/DATA/CHELSA/PRESENT/"
 DIR_FUTURE_CLIMATE   <- "C:/A_TRABAJO/DATA/CHELSA/FUTURE/2041_2070/SSP585"     #  Ruta a las sub-carpetas con variables bioclimáticas futuras. Una por por modelo: GFDL/, IPSL/, etc. (*.tif)
-PATH_STUDY_AREA      <- "C:/A_TRABAJO/IberiaClimateRep_RES/DATA/ES_land_LAEA89_10km.shp"      # Ruta al .shp que contiene el poligono delimitante el area de estudio.
+PATH_STUDY_AREA      <- "C:/A_TRABAJO/IberiaClimateRep_RES/DATA/ES_land_LAEA89_10km_noCAN.shp"      # Ruta al .shp que contiene el poligono delimitante el area de estudio.
 PATH_PROTECTED_AREAS <- "C:/A_TRABAJO/IberiaClimateRep_RES/DATA/N2000_ES_LAEA89.shp" # Ruta al .shp que contiene el poligono de las Áreas Protegidas.
 
 DIR_CHELSA_MONTHLY <- "C:/A_TRABAJO/DATA/CHELSA/MONTHLY_1980_2022"
 YEAR_START         <- 1981   # Año inicial (inclusive)
 YEAR_END           <- 2010   # Año final  (inclusive)
-CHELSA_TARGET_CRS  <- "EPSG:3035"   # CRS de salida (ETRS89-LAEA)
+CHELSA_TARGET_CRS  <- "EPSG:4326"   # CRS de salida (ETRS89-LAEA)
 # Rutas de salida----
 
 DIR_OUT_CLIMATE  <- "C:/A_TRABAJO/IberiaClimateRep_RES/01_climate"       # Ruta para almacenar los datos climáticos procesados
 DIR_OUT_APS      <- "C:/A_TRABAJO/IberiaClimateRep_RES/02_aps"           # Ruta para almacenar los resultados de representatividad por AP (N2000CRS)
 DIR_OUT_GRID     <- "C:/A_TRABAJO/IberiaClimateRep_RES/02_grid"          # Ruta para almacenar los resultados de representatividad de la cuadrícula (EUCRS)
-DIR_OUT_CHANGE   <- "C:/A_TRABAJO/IberiaClimateRep_RES/SSP_585/03_change"        # Ruta para almacenar los resultados de trayectorias de cambio (stable/lost/novel)
+DIR_OUT_CHANGE   <- "C:/A_TRABAJO/IberiaClimateRep_RES/SSP_585/03_change_NOCAN"        # Ruta para almacenar los resultados de trayectorias de cambio (stable/lost/novel)
 DIR_OUT_METRICS  <- "C:/A_TRABAJO/IberiaClimateRep_RES/SSP_585/04_metrics"       #  Ruta para almacenar los resultados de métricas finales: rásteres y tablas
 
 # Modelos de clima futuro----
 
-FUTURE_MODELS  <- c("GFDL", "IPSL", "MRI", "MPI", "UKESM1")
-FUTURE_PERIOD  <- "2041_2070"   # Etiqueta temporal del escenario futuro
+FUTURE_MODELS  <- c("GFDL", "IPSL") # c("GFDL", "IPSL", "MRI", "MPI", "UKESM1")
+FUTURE_PERIOD  <- "2040_2070"   # Etiqueta temporal del escenario futuro
 
 # Parámetros del análisis----
 

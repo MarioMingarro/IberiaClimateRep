@@ -17,23 +17,15 @@ library(ClimaRep)
 library(foreach)
 library(doParallel)
 
-# Rutas a los archivos preparados en el Paso 1
-present_clim_path <- file.path(DIR_OUT_CLIMATE, "present_climate_VIF.tif")
-future_clim_path  <- file.path(DIR_OUT_CLIMATE, "future_climate_ensemble_MEAN.tif")
-
-# Cargar datos espaciales
-present_clim    <- terra::rast(present_clim_path)
-study_area      <- read_sf(PATH_STUDY_AREA) |> st_make_valid() |>st_transform(crs(present_clim))
-protected_areas <- read_sf(PATH_PROTECTED_AREAS)
 
 # Filtrado polígonos de APs----
 
 message("Filtrando áreas protegidas")
 dir.create(DIR_OUT_APS, recursive = TRUE, showWarnings = FALSE)
-
+study_area      <- read_sf(PATH_STUDY_AREA) |> st_make_valid() |> st_transform("EPSG:3035")
 protected_areas <- read_sf(PATH_PROTECTED_AREAS) |>
   st_make_valid() |>
-  st_transform(crs(present_clim)) |>
+  st_transform("EPSG:3035") |>
   st_intersection(study_area) |>
   mutate(
     Area_m2     = as.numeric(st_area(geometry)),
@@ -43,6 +35,7 @@ protected_areas <- read_sf(PATH_PROTECTED_AREAS) |>
   filter(Area_m2 > MIN_AREA_M2, IPQ > MIN_IPQ) |>
   select(all_of(c(COL_AP_ID, COL_AP_NAME)), Area_m2, Prmtr_m, IPQ)
 
+protected_areas <- st_transform("EPSG:4326")
 st_write(
   protected_areas,
   file.path(DIR_OUT_APS, "protected_areas_filtered.shp"),
@@ -51,6 +44,17 @@ st_write(
 
 message("APs retenidas: ", nrow(protected_areas))
 #protected_areas <- st_read(file.path(DIR_OUT_APS, "protected_areas_filtered.shp"))
+
+
+# Rutas a los archivos preparados en el Paso 1
+present_clim_path <- file.path(DIR_OUT_CLIMATE, "present_climate_VIF.tif")
+future_clim_path  <- file.path(DIR_OUT_CLIMATE, "future_climate_ensemble_MEAN.tif")
+
+# Cargar datos espaciales
+present_clim    <- terra::rast(present_clim_path)
+study_area      <- read_sf(PATH_STUDY_AREA) |> st_make_valid() |> st_transform(CHELSA_TARGET_CRS)
+protected_areas <- read_sf(PATH_PROTECTED_AREAS)|> st_make_valid() |> st_transform(CHELSA_TARGET_CRS)
+
 
 # 3.1 mh_rep() para todas las APs → N2000CRS----
 #
@@ -153,6 +157,7 @@ foreach(
 stopCluster(cl)
 message("mh_rep() para cuadrícula completado.")
 tictoc::toc()
+
 # 2.3 mh_rep_ch() para todas las APs → Stable / Lost / Novel----
 #
 # Para cada AP compara el espacio climático presente con el futuro e identifica:
@@ -181,7 +186,7 @@ foreach(
 ) %dopar% {
   pres <- terra::rast(present_clim_path)
   fut  <- terra::rast(future_clim_path)
-  ap   <- protected_areas[i, ]
+  ap   <- protected_areas[892, ]
   ClimaRep::mh_rep_ch(
     polygon                   = ap,
     col_name                  = COL_AP_NAME,
