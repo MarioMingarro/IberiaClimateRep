@@ -88,7 +88,7 @@ for (var in selected_vars) {
 mean_files  <- list.files(dir_stats, "_MEAN\\.tif$", full.names = TRUE)
 future_clim <- terra::rast(mean_files)
 names(future_clim) <- gsub("_MEAN\\.tif$", "", basename(mean_files))
-names(future_clim) <- selected_vars
+future_clim <- future_clim[[selected_vars]]
 terra::writeRaster(
   future_clim,
   file.path(DIR_OUT_CLIMATE, "future_climate_ensemble_MEAN.tif"),
@@ -98,7 +98,7 @@ terra::writeRaster(
 sd_files       <- list.files(dir_stats, "_SD\\.tif$", full.names = TRUE)
 future_clim_sd <- terra::rast(sd_files)
 names(future_clim_sd) <- gsub("_SD\\.tif$", "", basename(sd_files))
-names(future_clim) <- selected_vars
+future_clim_sd <- future_clim_sd[[selected_vars]]
 terra::writeRaster(
   future_clim_sd,
   file.path(DIR_OUT_CLIMATE, "future_climate_ensemble_SD.tif"),

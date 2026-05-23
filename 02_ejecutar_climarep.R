@@ -35,7 +35,7 @@ protected_areas <- read_sf(PATH_PROTECTED_AREAS) |>
   filter(Area_m2 > MIN_AREA_M2, IPQ > MIN_IPQ) |>
   select(all_of(c(COL_AP_ID, COL_AP_NAME)), Area_m2, Prmtr_m, IPQ)
 
-protected_areas <- st_transform("EPSG:4326")
+protected_areas <- st_transform(protected_areas, "EPSG:4326")
 st_write(
   protected_areas,
   file.path(DIR_OUT_APS, "protected_areas_filtered.shp"),
@@ -186,7 +186,7 @@ foreach(
 ) %dopar% {
   pres <- terra::rast(present_clim_path)
   fut  <- terra::rast(future_clim_path)
-  ap   <- protected_areas[892, ]
+  ap   <- protected_areas[i, ]
   ClimaRep::mh_rep_ch(
     polygon                   = ap,
     col_name                  = COL_AP_NAME,
