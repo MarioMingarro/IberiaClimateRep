@@ -45,7 +45,7 @@ COL_AP_NAME <- "SITE_NAME"   # Nombre legible
 
 # Variables bioclimáticas a excluir antes del VIF----
 
-EXCLUDE_BIOCLIM <- c("bio8", "bio9", "bio18", "bio19")
+EXCLUDE_BIOCLIM <- c("bio08", "bio09", "bio18", "bio19")
 
 # Cuadrícula para EUCRS----
 # Factor de agregación sobre el ráster de referencia para generar la cuadrícula.

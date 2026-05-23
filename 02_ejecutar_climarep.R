@@ -49,7 +49,8 @@ st_write(
 )
 
 message("APs retenidas: ", nrow(protected_areas))
-protected_areas <- st_read(file.path(DIR_OUT_APS, "protected_areas_filtered.shp"))
+#protected_areas <- st_read(file.path(DIR_OUT_APS, "protected_areas_filtered.shp"))
+
 # 3.1 mh_rep() para todas las APs → N2000CRS----
 #
 # Para cada AP genera un ráster binario: 1 = celda análoga, 0 = no análoga.
