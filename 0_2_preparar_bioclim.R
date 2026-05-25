@@ -12,7 +12,7 @@
 #   PATH_STUDY_AREA     - shapefile del área de estudio
 #   DIR_PRESENT_CLIMATE - directorio raíz para la salida (se crea una subcarpeta
 #                         con la etiqueta del periodo, p.ej. "1981-2010/")
-#   CHELSA_TARGET_CRS   - CRS de salida (p.ej. "EPSG:3035")
+#   TARGET_CRS   - CRS de salida (p.ej. "EPSG:3035")
 #   NUM_CORES           - cores para terra::app
 
 source("0_configuracion.R")
@@ -25,7 +25,7 @@ library(sf)
 stopifnot(
   exists("DIR_CHELSA_MONTHLY"), dir.exists(DIR_CHELSA_MONTHLY),
   exists("YEAR_START"), exists("YEAR_END"), YEAR_END >= YEAR_START,
-  exists("CHELSA_TARGET_CRS"),
+  exists("TARGET_CRS"),
   file.exists(PATH_STUDY_AREA)
 )
 
@@ -168,9 +168,9 @@ names(bioclim_wgs84) <- paste0("bio", 1:19)
 
 # 6. Reproyección al CRS objetivo, recorte y guardado ----
 
-message("Reproyectando a ", CHELSA_TARGET_CRS, " …")
-study_area_tgt <- project(study_area_src, CHELSA_TARGET_CRS)
-bioclim_tgt    <- project(bioclim_wgs84, CHELSA_TARGET_CRS, method = "bilinear")
+message("Reproyectando a ", TARGET_CRS, " …")
+study_area_tgt <- project(study_area_src, TARGET_CRS)
+bioclim_tgt    <- project(bioclim_wgs84, TARGET_CRS, method = "bilinear")
 bioclim_tgt    <- mask(crop(bioclim_tgt, study_area_tgt), study_area_tgt)
 
 message("Guardando 19 rásteres bioclim")

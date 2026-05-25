@@ -1,21 +1,25 @@
 # =============================================================================
 # ClimaRep - Paso 3: Métricas de red
 # =============================================================================
-#  Presente:
-#   3.1  N2000CRS  → redundancia climática de la red de APs
-#   3.2  EUCRS     → redundancia climática de fondo (referencia europea)
-#   3.3  RCRI      → log10(N2000CRS_norm / EUCRS_norm): sobre/infra-representación
+# Todas las métricas se derivan de los rásteres Stable / Lost / Novel
+# producidos por mh_rep_ch() (Paso 2) — tanto para las APs (N2000CRS) como
+# para la cuadrícula (EUCRS). De este modo presente y futuro comparten la
+# MISMA matriz de covarianza interna y todas las comparaciones (N2000CRS vs
+# EUCRS, presente vs futuro, ΔN2000CRS, ΔRCRI…) son coherentes.
 #
-# Cambio climático:
-#   3.4  N2000CRS_stable / _lost / _novel → overlay de trayectorias de cambio
-#   3.5  N2000CRS_presente, N2000CRS_futuro, ΔN2000CRS
-#   3.6  RCRI_futuro, ΔRCRI
+# Convenciones de derivación:
+#   * stable = #APs/celdas que mantienen análogo en el futuro
+#   * lost   = #APs/celdas que pierden  análogo en el futuro
+#   * novel  = #APs/celdas que ganan    análogo en el futuro
+#   * present = stable + lost   (análogos en el presente)
+#   * future  = stable + novel  (análogos en el futuro)
 #
-# Salidas en results/04_metrics/:
-#   N2000CRS.tif, EUCRS.tif, RCRI.tif
+# Métricas (carpeta DIR_OUT_METRICS):
 #   N2000CRS_stable.tif, N2000CRS_lost.tif, N2000CRS_novel.tif
 #   N2000CRS_present.tif, N2000CRS_future.tif, delta_N2000CRS.tif
-#   RCRI_future.tif, delta_RCRI.tif
+#   EUCRS_stable.tif, EUCRS_lost.tif, EUCRS_novel.tif
+#   EUCRS_present.tif, EUCRS_future.tif, delta_EUCRS.tif
+#   RCRI_present.tif, RCRI_future.tif, delta_RCRI.tif
 
 source("0_configuracion.R")
 
@@ -24,134 +28,137 @@ library(ClimaRep)
 
 dir.create(DIR_OUT_METRICS, recursive = TRUE, showWarnings = FALSE)
 
-# 3.1 N2000CRS: redundancia de la red----
-#
-# rep_overlay() suma todos los rásteres binarios de representatividad:
-# N2000CRS(c) = nº de APs para las que la celda c es análoga.
+# Función auxiliar: lee los tres rásteres (stable/lost/novel) de una carpeta de overlay producida por ClimaRep::rep_overlay() con change = TRUE.
+# Esta función escribe las bandas en /individual_bands/ con etiquetas que codifican:Lost (Red, _R_), Stable/Retained (Green, _G_), Novel (Blue, _B_).
+read_overlay_bands <- function(overlay_dir) {
+  ib <- file.path(overlay_dir, "individual_bands")
+  fs <- list.files(ib, "\\.tif$", full.names = TRUE)
+  list(
+    stable = terra::rast(grep("stable|Stable|Retained|retained|_G_", fs, value = TRUE)[1]),
+    lost   = terra::rast(grep("lost|Lost|_R_",                       fs, value = TRUE)[1]),
+    novel  = terra::rast(grep("novel|Novel|_B_",                     fs, value = TRUE)[1])
+  )
+}
 
-message("3.1 Calculando N2000CRS")
+# Función auxiliar: dada una namda stable/lost/novel y un prefijo de nombre, 
+# devuelve la lista completa de rásteres derivados (stable, lost, novel, present, future, delta).
+build_metric_set <- function(bands, prefix) {
+  stable <- bands$stable
+  lost   <- bands$lost
+  novel  <- bands$novel
+  names(stable) <- paste0(prefix, "_stable")
+  names(lost)   <- paste0(prefix, "_lost")
+  names(novel)  <- paste0(prefix, "_novel")
+  
+  present <- stable + lost
+  future  <- stable + novel
+  delta   <- future - present
+  names(present) <- paste0(prefix, "_present")
+  names(future)  <- paste0(prefix, "_future")
+  names(delta)   <- paste0("delta_", prefix)
+  
+  list(
+    stable  = stable,
+    lost    = lost,
+    novel   = novel,
+    present = present,
+    future  = future,
+    delta   = delta
+  )
+}
 
-ClimaRep::rep_overlay(
-  folder_path = file.path(DIR_OUT_APS, "Representativeness"),
-  output_dir  = file.path(DIR_OUT_METRICS, "N2000CRS"),
-  change = FALSE)
 
-n2000crs_file <- list.files(
-  file.path(DIR_OUT_METRICS, "N2000CRS"),
-  "\\.tif$", full.names = TRUE)[1]
-n2000crs <- terra::rast(n2000crs_file)
-names(n2000crs) <- "N2000CRS"
-terra::writeRaster(n2000crs, file.path(DIR_OUT_METRICS, "N2000CRS.tif"), overwrite = TRUE)
-
-# 3.2 EUCRS: redundancia de fondo----
-#
-# EUCRS(c) = nº de celdas de la cuadrícula cuyo espacio climático alcanza c.
-# Representa la redundancia climática esperada si toda la región estuviera protegida.
-
-message("3.2 Calculando EUCRS")
-
-ClimaRep::rep_overlay(
-  folder_path = file.path(DIR_OUT_GRID, "Representativeness"),
-  output_dir  = file.path(DIR_OUT_METRICS, "EUCRS"),
-  change = FALSE)
-
-eucrs_file <- list.files(
-  file.path(DIR_OUT_METRICS, "EUCRS"),
-  "\\.tif$", full.names = TRUE
-)[1]
-eucrs <- terra::rast(eucrs_file)
-names(eucrs) <- "EUCRS"
-terra::writeRaster(eucrs, file.path(DIR_OUT_METRICS, "EUCRS.tif"), overwrite = TRUE)
-
-# 3.3 RCRI: índice relativo de representatividad climática ----
-#
-# RCRI = log10(N2000CRS_norm / EUCRS_norm)
-# Normalizar por la suma total antes del cociente hace RCRI independiente del
-# número de APs y del número de celdas de la cuadrícula.
-#   RCRI > 0: sobre-representación de esa celda en la red
-#   RCRI < 0: infra-representación de esa celda en la red
-
-message("3.3  Calculando RCRI")
-
-n2000crs_norm <- n2000crs / terra::global(n2000crs, "max", na.rm = TRUE)[[1]]
-eucrs_norm    <- eucrs    / terra::global(eucrs,    "max", na.rm = TRUE)[[1]]
-
-rcri <- log10(n2000crs_norm / eucrs_norm)
-rcri <- terra::ifel(rcri < -9999, NA, rcri)
-names(rcri) <- "RCRI"
-terra::writeRaster(rcri, file.path(DIR_OUT_METRICS, "RCRI.tif"), overwrite = TRUE)
-
-message("   RCRI: [",
-        round(terra::global(rcri, "min", na.rm = TRUE)[[1]], 2), ", ",
-        round(terra::global(rcri, "max", na.rm = TRUE)[[1]], 2), "]")
-
-# 3.4 Overlays de cambio: Stable / Lost / Novel----
-#
-# rep_overlay() aplicado a los rásteres de mh_rep_ch() descompone los valores
-# codificados (1=Stable, 2=Lost, 3=Novel) y produce conteos separados.
-# N2000CRS_stable(c) = nº de APs que mantienen c como análogo en el futuro.
-# N2000CRS_lost(c)   = nº de APs que pierden c como análogo.
-# N2000CRS_novel(c)  = nº de APs que ganan c como análogo.
-
-message("3.4  Calculando overlays de cambio (Stable / Lost / Novel)")
+# 3.1 Overlay de los rásteres Change de las APs -> N2000CRS_* ----
+message("3.1  Overlay de las APs (N2000CRS_stable / _lost / _novel)")
 
 ClimaRep::rep_overlay(
-  folder_path = file.path(DIR_OUT_CHANGE, "Change"),
-  output_dir  = file.path(DIR_OUT_METRICS, "change_overlay"),
-  change = TRUE
+  folder_path = file.path(DIR_OUT_APS_CHANGE, "Change"),
+  output_dir  = file.path(DIR_OUT_METRICS, "N2000CRS_overlay"),
+  change      = TRUE
 )
 
-# Leer los tres rásteres de cambio producidos por rep_overlay
-overlay_dir   <- file.path(DIR_OUT_METRICS, "change_overlay", "individual_bands")
-overlay_files <- list.files(overlay_dir, "\\.tif$", full.names = TRUE)
+n2000 <- build_metric_set(
+  read_overlay_bands(file.path(DIR_OUT_METRICS, "N2000CRS_overlay")),
+  prefix = "N2000CRS"
+)
 
-n2000crs_stable <- terra::rast(grep("stable|Stable|_G_", overlay_files, value = TRUE)[1])
-n2000crs_lost   <- terra::rast(grep("lost|Lost|_R_",   overlay_files, value = TRUE)[1])
-n2000crs_novel  <- terra::rast(grep("novel|Novel|_B_", overlay_files, value = TRUE)[1])
 
-names(n2000crs_stable) <- "N2000CRS_stable"
-names(n2000crs_lost)   <- "N2000CRS_lost"
-names(n2000crs_novel)  <- "N2000CRS_novel"
+# 3.2 Overlay de los rásteres Change de la cuadrícula -> EUCRS_* ----
+message("3.2  Overlay de la cuadrícula EUCRS (EUCRS_stable / _lost / _novel)")
 
-# 3.5 Redundancia presente y futura, cambio neto----
+ClimaRep::rep_overlay(
+  folder_path = file.path(DIR_OUT_GRID_CHANGE, "Change"),
+  output_dir  = file.path(DIR_OUT_METRICS, "EUCRS_overlay"),
+  change      = TRUE
+)
 
-message("3.5  Calculando N2000CRS presente/futuro y ΔN2000CRS")
+eucrs <- build_metric_set(
+  read_overlay_bands(file.path(DIR_OUT_METRICS, "EUCRS_overlay")),
+  prefix = "EUCRS"
+)
 
-# Presente = celdas que la AP representa ahora (stable + lost)
-n2000crs_present <- n2000crs_stable + n2000crs_lost
-names(n2000crs_present) <- "N2000CRS_present"
 
-# Futuro = celdas que la AP representará (stable + novel)
-n2000crs_future  <- n2000crs_stable + n2000crs_novel
-names(n2000crs_future) <- "N2000CRS_future"
-
-# Cambio neto de redundancia por celda
-delta_n2000crs <- n2000crs_future - n2000crs_present
-names(delta_n2000crs) <- "delta_N2000CRS"
-
-# 3.6 RCRI futuro y ΔRCRI----
+# 3.3 RCRI presente, RCRI futuro y ΔRCRI ----
 #
-# El denominador se fija al EUCRS presente para que RCRI_presente y RCRI_futuro
-# sean directamente comparables (cambio imputable al CC, no al fondo climático).
+# RCRI = log10(N2000CRS_norm / EUCRS_norm)
+#   * RCRI > 0: sobre-representación en la red
+#   * RCRI < 0: infra-representación
+#
+# Al usar EUCRS_present y EUCRS_future calculados con el MISMO marco de
+# referencia (mismo mh_rep_ch) que N2000CRS_present y N2000CRS_future,
+# la comparación es internamente consistente:
+#   RCRI_present = log10(N2000CRS_present_norm / EUCRS_present_norm)
+#   RCRI_future  = log10(N2000CRS_future_norm  / EUCRS_present_norm)
+#   delta_RCRI   = RCRI_future - RCRI_present
 
-message("3.6  Calculando RCRI_futuro y ΔRCRI")
 
-n2000crs_future_norm <- n2000crs_future / terra::global(n2000crs_future, "max", na.rm = TRUE)[[1]]
+message("3.3  RCRI presente, RCRI futuro y ΔRCRI")
 
-rcri_future <- log10(n2000crs_future_norm / eucrs_norm)
-rcri_future <- terra::ifel(rcri_future < -9999, NA, rcri_future)
-names(rcri_future) <- "RCRI_future"
+safe_norm <- function(r) r / terra::global(r, "max", na.rm = TRUE)[[1]]
 
-delta_rcri <- rcri_future - rcri
-names(delta_rcri) <- "delta_RCRI"
+n2000_present_norm <- safe_norm(n2000$present)
+n2000_future_norm  <- safe_norm(n2000$future)
+eucrs_present_norm <- safe_norm(eucrs$present)
+eucrs_future_norm  <- safe_norm(eucrs$future)
+
+rcri_present <- log10(n2000_present_norm / eucrs_present_norm)
+rcri_future <- log10(n2000_future_norm / eucrs_present_norm)
+
+rcri_present <- terra::ifel(is.infinite(rcri_present), NA, rcri_present)
+rcri_future  <- terra::ifel(is.infinite(rcri_future),  NA, rcri_future)
+
+delta_rcri <- rcri_future - rcri_present
+
+names(rcri_present) <- "RCRI_present"
+names(rcri_future)  <- "RCRI_future"
+names(delta_rcri)   <- "delta_RCRI"
+
+message("   RCRI_present: [",
+        round(terra::global(rcri_present, "min", na.rm = TRUE)[[1]], 2), ", ",
+        round(terra::global(rcri_present, "max", na.rm = TRUE)[[1]], 2), "]")
+message("   RCRI_future : [",
+        round(terra::global(rcri_future, "min", na.rm = TRUE)[[1]], 2), ", ",
+        round(terra::global(rcri_future, "max", na.rm = TRUE)[[1]], 2), "]")
+
+
+# 3.4 Guardado de todos los rásteres ----
+
+message("3.4  Guardando rásteres en ", DIR_OUT_METRICS)
 
 rasters_out <- list(
-  N2000CRS_stable  = n2000crs_stable,
-  N2000CRS_lost    = n2000crs_lost,
-  N2000CRS_novel   = n2000crs_novel,
-  N2000CRS_present = n2000crs_present,
-  N2000CRS_future  = n2000crs_future,
-  delta_N2000CRS   = delta_n2000crs,
+  N2000CRS_stable  = n2000$stable,
+  N2000CRS_lost    = n2000$lost,
+  N2000CRS_novel   = n2000$novel,
+  N2000CRS_present = n2000$present,
+  N2000CRS_future  = n2000$future,
+  delta_N2000CRS   = n2000$delta,
+  EUCRS_stable     = eucrs$stable,
+  EUCRS_lost       = eucrs$lost,
+  EUCRS_novel      = eucrs$novel,
+  EUCRS_present    = eucrs$present,
+  EUCRS_future     = eucrs$future,
+  delta_EUCRS      = eucrs$delta,
+  RCRI_present     = rcri_present,
   RCRI_future      = rcri_future,
   delta_RCRI       = delta_rcri
 )
@@ -164,5 +171,4 @@ for (nm in names(rasters_out)) {
   )
 }
 
-message("Rásteres guardados en: ", DIR_OUT_METRICS)
 message("Paso 3 completado.")

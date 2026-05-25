@@ -15,7 +15,7 @@ base_dir <- "C:/A_TRABAJO/DATA/CHELSA/FUTURE"
 periodos <- c("2041-2070")
 
 # Escenarios SSP a descargar c("ssp126", "ssp370", "ssp585")
-ssps <- c("ssp585")
+ssps <- c("ssp126")
 
 # Modelos GCM (5 disponibles en CHELSA V2.1)
 gcms <- c("GFDL-ESM4", "IPSL-CM6A-LR", "MPI-ESM1-2-HR",

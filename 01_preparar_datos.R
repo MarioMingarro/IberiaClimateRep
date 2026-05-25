@@ -37,7 +37,6 @@ present_raw <- terra::mask(terra::crop(present_raw, study_area), study_area)
 message("Ejecutando vif_filter (umbral = ", VIF_THRESHOLD, ")")
 vif_result    <- ClimaRep::vif_filter(present_raw, th = VIF_THRESHOLD)
 present_clim  <- vif_result$filtered_raster
-present_clim  <- project(present_clim, CHELSA_TARGET_CRS, method = "bilinear")
 print(vif_result$summary)
 names(present_clim) <- gsub(".*_(bio[0-9]+)_.*", "\\1", names(present_clim))
 names(present_clim) <-  gsub("bio0", "bio", names(present_clim))
