@@ -25,6 +25,7 @@ source("0_configuracion.R")
 
 library(terra)
 library(ClimaRep)
+tictoc::tic()
 
 dir.create(DIR_OUT_METRICS, recursive = TRUE, showWarnings = FALSE)
 
@@ -172,3 +173,4 @@ for (nm in names(rasters_out)) {
 }
 
 message("Paso 3 completado.")
+tictoc::toc()
