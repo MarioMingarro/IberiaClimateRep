@@ -12,21 +12,20 @@ PATH_PROTECTED_AREAS <- "C:/A_TRABAJO/IberiaClimateRep_RES/DATA/N2000_ES_LAEA89.
 
 # Datos para el análisis del gradiente altitudinal (Paso 5)
 PATH_DEM            <- "C:/A_TRABAJO/N2000_CLIMAREP/DATA/DEM/wc2.1_30s_elev_EU_LAEA.tif"   # Modelo Digital de Elevaciones
-PATH_BIOREGIONS     <- "C:/A_TRABAJO/N2000_CLIMAREP/DATA/BIOREGIONS/BiogeoRegions_ES.shp"  # Regiones biogeográficas (opcional)
 COL_BIOREGION       <- "code"        # Campo del shapefile con el código/nombre de la región
 
 DIR_CHELSA_MONTHLY <- "C:/A_TRABAJO/DATA/CHELSA/MONTHLY_1980_2022"
 YEAR_START         <- 1981   # Año inicial (inclusive)
 YEAR_END           <- 2010   # Año final  (inclusive)
-TARGET_CRS  <- "EPSG:4326"   # CRS de salida (ETRS89-LAEA)
+TARGET_CRS  <- "EPSG:4623"   # CRS de salida 
 
 # Rutas de salida----
 
-DIR_OUT_CLIMATE      <- "C:/A_TRABAJO/IberiaClimateRep_RES/SSP370/01_climate"        # Ruta para almacenar los datos climáticos procesados
-DIR_OUT_APS_CHANGE   <- "C:/A_TRABAJO/IberiaClimateRep_RES/SSP370/02_aps"     # mh_rep_ch sobre APs (sustituye a 02_aps y 03_change)
-DIR_OUT_GRID_CHANGE  <- "C:/A_TRABAJO/IberiaClimateRep_RES/SSP370/03_grid"    # mh_rep_ch sobre la cuadrícula (sustituye al EUCRS clásico con mh_rep)
-DIR_OUT_METRICS      <- "C:/A_TRABAJO/IberiaClimateRep_RES/SSP370/04_metrics"        # Ruta para almacenar los resultados de métricas finales: rásteres y tablas
-DIR_OUT_ELEVATION    <- "C:/A_TRABAJO/IberiaClimateRep_RES/SSP370/05_elevation"      # Salidas del análisis de gradiente altitudinal (chi-cuadrado)
+DIR_OUT_CLIMATE      <- "C:/A_TRABAJO/climarep_iberia/SSP370/01_climate"        # Ruta para almacenar los datos climáticos procesados
+DIR_OUT_APS_CHANGE   <- "C:/A_TRABAJO/climarep_iberia/SSP370/02_aps"     # mh_rep_ch sobre APs (sustituye a 02_aps y 03_change)
+DIR_OUT_GRID_CHANGE  <- "C:/A_TRABAJO/climarep_iberia/SSP370/03_grid"    # mh_rep_ch sobre la cuadrícula (sustituye al EUCRS clásico con mh_rep)
+DIR_OUT_METRICS      <- "C:/A_TRABAJO/climarep_iberia/SSP370/04_metrics"        # Ruta para almacenar los resultados de métricas finales: rásteres y tablas
+DIR_OUT_ELEVATION    <- "C:/A_TRABAJO/climarep_iberia/SSP370/05_elevation"      # Salidas del análisis de gradiente altitudinal (chi-cuadrado)
 
 # Modelos de clima futuro----
 
@@ -42,7 +41,7 @@ EUCRS_THRESHOLD <- 1.00  # Percentil de Mahalanobis para definir análogos en la
 
 # Filtro de calidad de polígonos----
 
-MIN_AREA_M2 <- 10e6   # Área mínima: 10 km²
+MIN_AREA_M2 <- 5e6   # Área mínima: 10 km²
 MIN_IPQ     <- 0.01   # Cociente isoperimétrico mínimo
 
 # Columnas identificadoras en el shapefile de APs----

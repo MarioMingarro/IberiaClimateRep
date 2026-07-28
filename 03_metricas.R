@@ -115,7 +115,7 @@ eucrs <- build_metric_set(
 
 message("3.3  RCRI presente, RCRI futuro y ΔRCRI")
 
-safe_norm <- function(r) r / terra::global(r, "max", na.rm = TRUE)[[1]]
+safe_norm <- function(r) r / terra::global(r, "sum", na.rm = TRUE)$sum
 
 n2000_present_norm <- safe_norm(n2000$present)
 n2000_future_norm  <- safe_norm(n2000$future)

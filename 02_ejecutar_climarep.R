@@ -86,7 +86,10 @@ r_agg     <- terra::aggregate(r_ref, fact = GRID_AGG_FACTOR, fun = "mean", na.rm
 grid_vect <- terra::as.polygons(r_agg, values = FALSE, dissolve = FALSE, na.rm = FALSE)
 grid_vect$ID <- seq_len(nrow(grid_vect))
 
-study_area_clean <- sf::st_make_valid(study_area)
+study_area_clean <- study_area |>
+  sf::st_make_valid() |>
+  sf::st_set_crs(4326)
+
 grid_sf <- sf::st_as_sf(grid_vect) |>
   sf::st_make_valid() |>
   sf::st_intersection(study_area_clean) |>
