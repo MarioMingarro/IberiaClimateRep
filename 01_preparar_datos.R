@@ -13,7 +13,7 @@
 
 source("0_configuracion.R")
 
-library(terra)
+library(terra) 
 library(sf)
 library(dplyr)
 library(ClimaRep)

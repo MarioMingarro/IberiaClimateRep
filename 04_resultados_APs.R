@@ -9,7 +9,7 @@
 #
 # Por AP (Paper 3 – cambio):
 #   cells_stable, cells_lost, cells_novel  → extensión de cada trayectoria
-#   Resilience_rep                          → fracción estable / total presente
+#   Resilience_rep                         → fracción estable / total presente
 #   delta_RCRI_P50                          → cambio neto de representatividad
 #
 # Salidas:
@@ -99,7 +99,7 @@ df_future  <- extract_sum(r_future,  aps_vect, "cells_future")
 
 # Resiliencia representacional: fracción del espacio climático presente que persiste.
 # Responde a: ¿el clima que esta AP representa ahora seguirá existiendo?
-resilience <- (df_stable$cells_stable + 1e-6) / (df_present$cells_present + 1e-6)
+resilience <- (df_present$cells_present + 1e-6) - ((df_stable$cells_stable + 1e-6) + (df_stable$cells_stable + 1e-6)) 
 
 # Tabla final----
 message("4.4 Ensamblando tabla final")

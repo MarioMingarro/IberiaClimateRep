@@ -7,8 +7,8 @@
 # Rutas de entrada----
 DIR_PRESENT_CLIMATE <- "C:/A_TRABAJO/DATA/CHELSA/BIOCLIM_1981_2010" ##a
 DIR_FUTURE_CLIMATE   <- "C:/A_TRABAJO/DATA/CHELSA/FUTURE/2041_2070/SSP370"     #  Ruta a las sub-carpetas con variables bioclimáticas futuras. Una por por modelo: GFDL/, IPSL/, etc. (*.tif)
-PATH_STUDY_AREA      <- "C:/A_TRABAJO/IberiaClimateRep_RES/DATA/ES_land_LAEA89_10km.shp"      # Ruta al .shp que contiene el poligono delimitante el area de estudio.
-PATH_PROTECTED_AREAS <- "C:/A_TRABAJO/IberiaClimateRep_RES/DATA/N2000_ES_LAEA89.shp" # national_parks.shp  # Ruta al .shp que contiene el poligono de las Áreas Protegidas.
+PATH_STUDY_AREA      <- "C:/A_TRABAJO/A_GUIA_MITECO/GIS/MURCIA.shp"      # Ruta al .shp que contiene el poligono delimitante el area de estudio.
+PATH_PROTECTED_AREAS <- "C:/A_TRABAJO/A_GUIA_MITECO/GIS/RICOTE.shp"  # national_parks.shp  # Ruta al .shp que contiene el poligono de las Áreas Protegidas.
 
 # Datos para el análisis del gradiente altitudinal (Paso 5)
 PATH_DEM            <- "C:/A_TRABAJO/N2000_CLIMAREP/DATA/DEM/wc2.1_30s_elev_EU_LAEA.tif"   # Modelo Digital de Elevaciones
