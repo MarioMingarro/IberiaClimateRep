@@ -7,8 +7,8 @@
 # Rutas de entrada----
 DIR_PRESENT_CLIMATE <- "C:/A_TRABAJO/DATA/CHELSA/BIOCLIM_1981_2010" ##a
 DIR_FUTURE_CLIMATE   <- "C:/A_TRABAJO/DATA/CHELSA/FUTURE/2041_2070/SSP370"     #  Ruta a las sub-carpetas con variables bioclimáticas futuras. Una por por modelo: GFDL/, IPSL/, etc. (*.tif)
-PATH_STUDY_AREA      <- "C:/A_TRABAJO/A_GUIA_MITECO/GIS/MURCIA.shp"      # Ruta al .shp que contiene el poligono delimitante el area de estudio.
-PATH_PROTECTED_AREAS <- "C:/A_TRABAJO/A_GUIA_MITECO/GIS/RICOTE.shp"  # national_parks.shp  # Ruta al .shp que contiene el poligono de las Áreas Protegidas.
+PATH_STUDY_AREA      <- "C:/A_TRABAJO/climarep_iberia/ES_land_LAEA89_10km.shp"      # Ruta al .shp que contiene el poligono delimitante el area de estudio.
+PATH_PROTECTED_AREAS <- "C:/A_TRABAJO/climarep_iberia/SSP3702/02_aps/protected_areas_filtered.shp"  # national_parks.shp  # Ruta al .shp que contiene el poligono de las Áreas Protegidas.
 
 # Datos para el análisis del gradiente altitudinal (Paso 5)
 PATH_DEM            <- "C:/A_TRABAJO/N2000_CLIMAREP/DATA/DEM/wc2.1_30s_elev_EU_LAEA.tif"   # Modelo Digital de Elevaciones
@@ -21,11 +21,11 @@ TARGET_CRS  <- "EPSG:4623"   # CRS de salida
 
 # Rutas de salida----
 
-DIR_OUT_CLIMATE      <- "C:/A_TRABAJO/climarep_iberia/SSP370/01_climate"        # Ruta para almacenar los datos climáticos procesados
-DIR_OUT_APS_CHANGE   <- "C:/A_TRABAJO/climarep_iberia/SSP370/02_aps"     # mh_rep_ch sobre APs (sustituye a 02_aps y 03_change)
-DIR_OUT_GRID_CHANGE  <- "C:/A_TRABAJO/climarep_iberia/SSP370/03_grid"    # mh_rep_ch sobre la cuadrícula (sustituye al EUCRS clásico con mh_rep)
-DIR_OUT_METRICS      <- "C:/A_TRABAJO/climarep_iberia/SSP370/04_metrics"        # Ruta para almacenar los resultados de métricas finales: rásteres y tablas
-DIR_OUT_ELEVATION    <- "C:/A_TRABAJO/climarep_iberia/SSP370/05_elevation"      # Salidas del análisis de gradiente altitudinal (chi-cuadrado)
+DIR_OUT_CLIMATE      <- "C:/A_TRABAJO/climarep_iberia/SSP3702/01_climate"        # Ruta para almacenar los datos climáticos procesados
+DIR_OUT_APS_CHANGE   <- "C:/A_TRABAJO/climarep_iberia/SSP3702/02_aps"     # mh_rep_ch sobre APs (sustituye a 02_aps y 03_change)
+DIR_OUT_GRID_CHANGE  <- "C:/A_TRABAJO/climarep_iberia/SSP3702/03_grid"    # mh_rep_ch sobre la cuadrícula (sustituye al EUCRS clásico con mh_rep)
+DIR_OUT_METRICS      <- "C:/A_TRABAJO/climarep_iberia/SSP3702/04_metrics"        # Ruta para almacenar los resultados de métricas finales: rásteres y tablas
+DIR_OUT_ELEVATION    <- "C:/A_TRABAJO/climarep_iberia/SSP3702/05_elevation"      # Salidas del análisis de gradiente altitudinal (chi-cuadrado)
 
 # Modelos de clima futuro----
 
@@ -46,8 +46,8 @@ MIN_IPQ     <- 0.01   # Cociente isoperimétrico mínimo
 
 # Columnas identificadoras en el shapefile de APs----
 
-COL_AP_ID   <- "site_code"  # "WDPA_PID"Identificador único "FinCode"
-COL_AP_NAME <- "SITE_NAME"  #"NAME"   # Nombre legible
+COL_AP_ID   <- "WDPAID"  # "WDPA_PID"Identificador único "FinCode"
+COL_AP_NAME <- "NAME"  #"NAME"   # Nombre legible
 
 # Variables bioclimáticas a excluir antes del VIF----
 
