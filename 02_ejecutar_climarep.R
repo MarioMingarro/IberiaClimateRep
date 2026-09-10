@@ -144,7 +144,7 @@ foreach(
     model                     = ENSEMBLE_LABEL,
     year                      = FUTURE_PERIOD,
     dir_output                = DIR_OUT_APS_CHANGE,
-    save_raw                  = FALSE
+    save_raw                  = TRUE
   )
   paste("OK AP:", ap[[COL_AP_ID]])
 }
