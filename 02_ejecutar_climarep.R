@@ -88,7 +88,7 @@ grid_vect$ID <- seq_len(nrow(grid_vect))
 
 study_area_clean <- study_area |>
   sf::st_make_valid() |>
-  sf::st_set_crs(4326)
+  sf::st_set_crs(TARGET_CRS)
 
 grid_sf <- sf::st_as_sf(grid_vect) |>
   sf::st_make_valid() |>

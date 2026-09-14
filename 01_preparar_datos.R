@@ -18,6 +18,7 @@ library(sf)
 library(dplyr)
 library(ClimaRep)
 
+
 # 1.1 Clima presente----
 
 message("1.1  Cargando variables climáticas presentes")
@@ -44,6 +45,11 @@ selected_vars <- names(present_clim)
 
 message("Variables retenidas: ", paste(selected_vars, collapse = ", "))
 print(vif_result$summary)
+
+sa_laea      <- terra::project(study_area_src, TARGET_CRS)
+present_clim <- terra::project(present_clim, TARGET_CRS, method = "bilinear", res = RES_TRABAJO)
+present_clim <- terra::mask(present_clim, sa_laea)
+
 
 dir.create(DIR_OUT_CLIMATE, recursive = TRUE, showWarnings = FALSE)
 terra::writeRaster(
@@ -88,6 +94,7 @@ mean_files  <- list.files(dir_stats, "_MEAN\\.tif$", full.names = TRUE)
 future_clim <- terra::rast(mean_files)
 names(future_clim) <- gsub("_MEAN\\.tif$", "", basename(mean_files))
 future_clim <- future_clim[[selected_vars]]
+future_clim <- terra::mask(terra::project(future_clim, present_clim, method = "bilinear"), sa_laea)
 terra::writeRaster(
   future_clim,
   file.path(DIR_OUT_CLIMATE, "future_climate_ensemble_MEAN.tif"),
@@ -98,6 +105,7 @@ sd_files       <- list.files(dir_stats, "_SD\\.tif$", full.names = TRUE)
 future_clim_sd <- terra::rast(sd_files)
 names(future_clim_sd) <- gsub("_SD\\.tif$", "", basename(sd_files))
 future_clim_sd <- future_clim_sd[[selected_vars]]
+future_clim_sd <- terra::mask(terra::project(future_clim_sd, present_clim, method = "bilinear"), sa_laea)
 terra::writeRaster(
   future_clim_sd,
   file.path(DIR_OUT_CLIMATE, "future_climate_ensemble_SD.tif"),
