@@ -36,7 +36,7 @@ ENSEMBLE_LABEL <- "ENSEMBLE"    # Etiqueta usada como argumento `model` en mh_re
 
 # Parámetros del análisis----
 
-VIF_THRESHOLD   <- 5    # Umbral VIF para eliminar variables colineales
+VIF_THRESHOLD   <- 5     # Umbral VIF para eliminar variables colineales
 REP_THRESHOLD   <- 0.95  # Percentil de Mahalanobis para definir análogos en APs (P95)
 EUCRS_THRESHOLD <- 1.00  # Percentil de Mahalanobis para definir análogos en la cuadrícula EUCRS (P100: rango completo)
 
